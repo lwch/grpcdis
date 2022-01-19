@@ -5,16 +5,24 @@ import (
 	"net"
 
 	"github.com/lwch/goredis/code/client"
+	"github.com/lwch/goredis/code/command/server"
+	"github.com/lwch/goredis/code/command/strings"
 	"github.com/lwch/logging"
 )
 
 // App application
 type App struct {
+	cmds *server.Command
 }
 
 // New new application
 func New() *App {
-	return &App{}
+	app := &App{
+		cmds: server.NewCommand(),
+	}
+	// strings
+	app.cmds.Add(strings.NewSet())
+	return app
 }
 
 // ListenAndServe listen and serve
@@ -29,7 +37,7 @@ func (app *App) ListenAndServe(port uint16) error {
 			logging.Error("accept error: %v", err)
 			continue
 		}
-		cli := client.New(conn)
+		cli := client.New(conn, app.cmds)
 		go cli.Run()
 	}
 }
