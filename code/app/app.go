@@ -7,21 +7,27 @@ import (
 	"github.com/lwch/goredis/code/client"
 	"github.com/lwch/goredis/code/command/server"
 	"github.com/lwch/goredis/code/command/strings"
+	"github.com/lwch/goredis/code/obj"
 	"github.com/lwch/logging"
 )
 
 // App application
 type App struct {
 	cmds *server.Command
+	objs *obj.Objs
 }
 
 // New new application
 func New() *App {
+	cmds := server.NewCommand()
+	objs := obj.New()
 	app := &App{
-		cmds: server.NewCommand(),
+		cmds: cmds,
+		objs: objs,
 	}
 	// strings
-	app.cmds.Add(strings.NewSet())
+	cmds.Add(strings.NewSet(objs))
+	cmds.Add(strings.NewGet(objs))
 	return app
 }
 

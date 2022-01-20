@@ -2,6 +2,7 @@ package client
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 
 	"github.com/lwch/goredis/code/command"
@@ -56,9 +57,13 @@ func (cli *Client) Run() {
 		}
 		cmd := cli.cmds.Lookup(string(argv[0]))
 		if cmd == nil {
-			// TODO: reply error
 			logging.Error("command [%s] not supported", string(argv[0]))
-			return
+			err = cli.cmdNotFound(string(argv[0]))
+			if err != nil {
+				logging.Error("reply error: %v", err)
+				return
+			}
+			continue
 		}
 		err = cmd.Run(argv[1:], cli.writer)
 		if err != nil {
@@ -67,4 +72,14 @@ func (cli *Client) Run() {
 			return
 		}
 	}
+}
+
+func (cli *Client) cmdNotFound(cmd string) error {
+	cli.writer.Lock()
+	defer cli.writer.Unlock()
+	_, err := fmt.Fprintf(cli.writer, "-ERR command [%s] not supported\r\n", cmd)
+	if err != nil {
+		return err
+	}
+	return nil
 }

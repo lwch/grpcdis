@@ -1,13 +1,18 @@
 package strings
 
-import "github.com/lwch/goredis/code/command"
+import (
+	"github.com/lwch/goredis/code/command"
+	"github.com/lwch/goredis/code/obj"
+)
 
 // Set set command
-type Set struct{}
+type Set struct {
+	objs *obj.Objs
+}
 
 // NewSet new set command
-func NewSet() *Set {
-	return &Set{}
+func NewSet(objs *obj.Objs) *Set {
+	return &Set{objs: objs}
 }
 
 // Name set command name
@@ -17,7 +22,7 @@ func (set *Set) Name() string {
 
 // Argc set command argc
 func (set *Set) Argc() int {
-	return -3
+	return 3
 }
 
 // Flags set command flags
@@ -45,5 +50,11 @@ func (set *Set) StepCount() int {
 
 // Run run set command
 func (set *Set) Run(argv [][]byte, w *command.LockWriter) error {
-	return nil
+	key := string(argv[0])
+	value := string(argv[1])
+	set.objs.Set(key, obj.NewString(value))
+	w.Lock()
+	_, err := w.Write([]byte("+OK\r\n"))
+	w.Unlock()
+	return err
 }
