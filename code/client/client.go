@@ -15,7 +15,7 @@ import (
 type Client struct {
 	conn   net.Conn
 	bufio  *bufio.Reader
-	writer *command.LockWriter
+	writer *command.PipeWriter
 	cmds   *server.Command
 }
 
@@ -75,11 +75,6 @@ func (cli *Client) Run() {
 }
 
 func (cli *Client) cmdNotFound(cmd string) error {
-	cli.writer.Lock()
-	defer cli.writer.Unlock()
-	_, err := fmt.Fprintf(cli.writer, "-ERR command [%s] not supported\r\n", cmd)
-	if err != nil {
-		return err
-	}
+	cli.writer.Write([]byte(fmt.Sprintf("-ERR command [%s] not supported\r\n", cmd)))
 	return nil
 }

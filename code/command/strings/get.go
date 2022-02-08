@@ -1,6 +1,7 @@
 package strings
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -53,32 +54,31 @@ func (get *Get) StepCount() int {
 }
 
 // Run run get command
-func (get *Get) Run(argv [][]byte, w *command.LockWriter) error {
+func (get *Get) Run(argv [][]byte, w *command.PipeWriter) error {
 	key := string(argv[0])
 	o := get.objs.Lookup(key)
 	if o == nil {
-		w.Lock()
-		_, err := w.Write([]byte("$-1\r\n"))
-		w.Unlock()
-		return err
+		w.Write([]byte("$-1\r\n"))
+		return nil
 	}
 	if o.T != obj.ObjString {
-		w.Lock()
-		_, err := fmt.Fprintf(w, "-WRONGTYPE wrong type of key %s\r\n", key)
-		w.Unlock()
-		return err
+		w.Write([]byte(fmt.Sprintf("-WRONGTYPE wrong type of key %s\r\n", key)))
+		return nil
 	}
 	value := o.String()
-	w.Lock()
-	defer w.Unlock()
-	_, err := fmt.Fprintf(w, "$%d\r\n", len(value))
+	var buf bytes.Buffer
+	_, err := fmt.Fprintf(&buf, "$%d\r\n", len(value))
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(w, strings.NewReader(string(value)))
+	_, err = io.Copy(&buf, strings.NewReader(string(value)))
 	if err != nil {
 		return err
 	}
-	_, err = w.Write([]byte("\r\n"))
-	return err
+	_, err = buf.Write([]byte("\r\n"))
+	if err != nil {
+		return err
+	}
+	w.Write(buf.Bytes())
+	return nil
 }

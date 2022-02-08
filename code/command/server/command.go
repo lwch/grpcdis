@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strings"
@@ -64,7 +65,7 @@ func (cmd *Command) Add(in command.Command) {
 }
 
 // Run run command command
-func (cmd *Command) Run(argv [][]byte, w *command.LockWriter) error {
+func (cmd *Command) Run(argv [][]byte, w *command.PipeWriter) error {
 	cmds := make([]command.Command, 0, len(cmd.cmds))
 	cmd.RLock()
 	for _, c := range cmd.cmds {
@@ -74,10 +75,9 @@ func (cmd *Command) Run(argv [][]byte, w *command.LockWriter) error {
 	sort.Slice(cmds, func(i, j int) bool {
 		return cmds[i].Name() < cmds[j].Name()
 	})
-	w.Lock()
-	defer w.Unlock()
+	var buf bytes.Buffer
 	// commands count
-	_, err := fmt.Fprintf(w, "*%d\r\n", len(cmds))
+	_, err := fmt.Fprintf(&buf, "*%d\r\n", len(cmds))
 	if err != nil {
 		return err
 	}
@@ -89,13 +89,14 @@ func (cmd *Command) Run(argv [][]byte, w *command.LockWriter) error {
 			strFlags += "+" + flag.String() + "\r\n"
 		}
 		// name, argc, flags, first key, last key, step count
-		_, err = fmt.Fprintf(w, "*%d\r\n$%d\r\n%s\r\n:%d\r\n*%d\r\n%s:%d\r\n:%d\r\n:%d\r\n",
+		_, err = fmt.Fprintf(&buf, "*%d\r\n$%d\r\n%s\r\n:%d\r\n*%d\r\n%s:%d\r\n:%d\r\n:%d\r\n",
 			6, len(name), name, c.Argc(), len(flags), strFlags,
 			c.FirstKey(), c.LastKey(), c.StepCount())
 		if err != nil {
 			return err
 		}
 	}
+	w.Write(buf.Bytes())
 	return nil
 }
 

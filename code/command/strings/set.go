@@ -49,12 +49,10 @@ func (set *Set) StepCount() int {
 }
 
 // Run run set command
-func (set *Set) Run(argv [][]byte, w *command.LockWriter) error {
+func (set *Set) Run(argv [][]byte, w *command.PipeWriter) error {
 	key := string(argv[0])
 	value := string(argv[1])
 	set.objs.Set(key, obj.NewString(value))
-	w.Lock()
-	_, err := w.Write([]byte("+OK\r\n"))
-	w.Unlock()
-	return err
+	w.Write([]byte("+OK\r\n"))
+	return nil
 }

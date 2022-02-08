@@ -34,14 +34,6 @@ func (obj *Obj) Valid() bool {
 	return time.Now().Before(obj.deadline)
 }
 
-// NewString create string object
-func NewString(str string) *Obj {
-	return &Obj{
-		T:     ObjString,
-		Value: StringValue(str),
-	}
-}
-
 // String convert object to string value
 func (obj *Obj) String() StringValue {
 	obj.RLock()
