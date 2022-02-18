@@ -5,7 +5,7 @@ import "sync"
 // Objs objects
 type Objs struct {
 	sync.RWMutex
-	data map[string]*Obj // TODO: change to hash struct
+	data map[string]*Obj
 }
 
 // New new objects
