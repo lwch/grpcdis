@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/lwch/goredis/code/client"
+	"github.com/lwch/goredis/code/command/lists"
 	"github.com/lwch/goredis/code/command/server"
 	"github.com/lwch/goredis/code/command/strings"
 	"github.com/lwch/goredis/code/obj"
@@ -28,6 +29,9 @@ func New() *App {
 	// strings
 	cmds.Add(strings.NewSet(objs))
 	cmds.Add(strings.NewGet(objs))
+	// lists
+	cmds.Add(lists.NewLpush(objs))
+	cmds.Add(lists.NewRpush(objs))
 	return app
 }
 

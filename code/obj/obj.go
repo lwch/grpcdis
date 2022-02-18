@@ -40,3 +40,10 @@ func (obj *Obj) String() StringValue {
 	defer obj.RUnlock()
 	return obj.Value.(StringValue)
 }
+
+// List convert object to list value
+func (obj *Obj) List() *ListValue {
+	obj.RLock()
+	defer obj.RUnlock()
+	return obj.Value.(*ListValue)
+}
