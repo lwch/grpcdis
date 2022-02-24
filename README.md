@@ -1,1 +1,3 @@
-# goredis
+# grpcdis
+
+redis server by gRPC protocol
